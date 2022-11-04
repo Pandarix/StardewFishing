@@ -2,9 +2,9 @@ package net.Pandarix.stardewfishing.mixin;
 
 
 import net.Pandarix.stardewfishing.StardewFishing;
+import net.Pandarix.stardewfishing.util.Config;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.BoneMealItem;
 import net.minecraft.world.item.FishingRodItem;
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
@@ -17,8 +17,12 @@ public abstract class FishingRodMixin {
 
     //injecting this method into the Bonemeal Blockinteraction
     @Inject(method = "use", at = @At("HEAD"))
-    protected void injectWriteMethod(Level level, Player player, InteractionHand interactionHand,CallbackInfoReturnable info) {
-        StardewFishing.LOGGER.info("Mixin successfully used");
+    protected void injectWriteMethod(Level level, Player player, InteractionHand interactionHand, CallbackInfoReturnable info) {
+        //Debug test
+        if (Config.FEATURES_ENABLED.get()) {
+            StardewFishing.LOGGER.info("Mixin successfully used");
+        }
+
     }
 
 }

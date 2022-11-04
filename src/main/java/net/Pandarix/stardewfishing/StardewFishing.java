@@ -1,6 +1,7 @@
 package net.Pandarix.stardewfishing;
 
 import com.mojang.logging.LogUtils;
+import net.Pandarix.stardewfishing.util.Config;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
@@ -28,6 +29,9 @@ public class StardewFishing
 
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
+
+        //  Creates Config files
+        Config.register();
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
