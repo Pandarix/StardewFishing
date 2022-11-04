@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "net.Pandarix.stardewfishing.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "stardewfishing.refmap.json",
+  "mixins": [
+    "FishingRodMixin"
+  ],
+  "client": [
+    "StardewFishingMixin"
+  ],
+  "minVersion": "0.8"
+}
