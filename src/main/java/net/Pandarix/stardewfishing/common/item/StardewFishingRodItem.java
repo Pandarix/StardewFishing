@@ -20,26 +20,43 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
 
 public class StardewFishingRodItem extends FishingRodItem {
+    public static final int USE_DURATION = 120;
+
     public StardewFishingRodItem(Properties pProperties) {
         super(pProperties);
     }
 
-    public static final int USE_DURATION = 120;
-
     @Override
     public InteractionResultHolder<ItemStack> use(Level pLevel, Player pPlayer, InteractionHand pHand) {
 
+        ItemStack itemstack = pPlayer.getItemInHand(pHand);
+
         //MODDED
         if (Config.FEATURES_ENABLED.get()) {
-            StardewFishing.LOGGER.info("use");
+
+            //retrieve-----------------------------------------------------------------------------------------------------------------------------------
+            if (pPlayer.fishing != null) {
+                int i = pPlayer.fishing.retrieve(itemstack);
+                itemstack.hurtAndBreak(i, pPlayer, (p_41288_) -> {
+                    p_41288_.broadcastBreakEvent(pHand);
+                });
+
+                pLevel.playSound((Player) null, pPlayer.getX(), pPlayer.getY(), pPlayer.getZ(), SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.NEUTRAL, 1.0F, 0.4F / (pLevel.getRandom().nextFloat() * 0.4F + 0.8F));
+                pPlayer.gameEvent(GameEvent.ITEM_INTERACT_FINISH);
+                return InteractionResultHolder.sidedSuccess(itemstack, pLevel.isClientSide());
+            }
+
+            //cast-----------------------------------------------------------------------------------------------------------------------------------
             if (pLevel.isClientSide) {
                 RodCastOverlay.enableOverlay();
             }
-            return ItemUtils.startUsingInstantly(pLevel, pPlayer, pHand);
+            pPlayer.gameEvent(GameEvent.ITEM_INTERACT_START);
+            pPlayer.awardStat(Stats.ITEM_USED.get(this));
+            ItemUtils.startUsingInstantly(pLevel, pPlayer, pHand);
+            return InteractionResultHolder.sidedSuccess(itemstack, pLevel.isClientSide());
         }
 
         //VANILLA
-        ItemStack itemstack = pPlayer.getItemInHand(pHand);
         if (pPlayer.fishing != null) {
             if (!pLevel.isClientSide) {
                 int i = pPlayer.fishing.retrieve(itemstack);
@@ -66,6 +83,42 @@ public class StardewFishingRodItem extends FishingRodItem {
     }
 
     /**
+     * Calculated the Luck and Speed bonus of the fishing rod cast using the enchantment values and the castStrength
+     *
+     * @param enchantmentBonus Enchantment level of Lure or Luck of the Sea
+     * @param player Player using the Fishing Rod
+     * @return int calculated value of enchantment and castStrength
+     */
+    private int calculateBonus(int enchantmentBonus, Player player){
+        StardewFishing.LOGGER.info("Enchantment-Bonus would be: " + enchantmentBonus);
+        StardewFishing.LOGGER.info("Fishingcast Bonus is: " + stingyRound(getFishingCastStrength(player)*2));
+        StardewFishing.LOGGER.info("Calculated Bonus is : " + ((int) ((enchantmentBonus*2/3)) + stingyRound(getFishingCastStrength(player)*2)));
+
+        return ((int) ((enchantmentBonus*2/3)) + stingyRound(getFishingCastStrength(player)*2));
+    }
+
+    /**
+     *  Rounds input double up if d > x.85.
+     *  Else it rounds down.
+     *
+     * @param d input double to be rounded
+     * @return int - rounded value
+     */
+    private int stingyRound(double d){
+        return d % 1 > 0.85 ? Math.round((float) d) : (int) d;
+    }
+
+    /**
+     * Uses an inverted and normalized sine function to represent the cast strength.
+     *
+     * @param player Player using the Fishing Rod
+     * @return double - value between 0 and 1
+     */
+    public static double getFishingCastStrength(Player player){
+        return (Math.abs(Math.sin((player.getUseItemRemainingTicks() / (float) (StardewFishingRodItem.USE_DURATION / 2)) * Math.PI + (Math.PI / 2))) * (-1) + 1);
+    }
+
+    /**
      * Called when the player finishes using this Item (E.g. finishes eating.). Not called when the player stops using
      * the Item before the action is complete.
      */
@@ -84,18 +137,27 @@ public class StardewFishingRodItem extends FishingRodItem {
     }
 
     private void stopUsing(LivingEntity pUser) {
+        Player player = (Player) pUser;
+        Level level = pUser.level;
+
         pUser.playSound(SoundEvents.FISHING_BOBBER_THROW, 1.0F, 1.0F);
-        if (pUser.level.isClientSide) {
+        if (!level.isClientSide) {
+            int j = EnchantmentHelper.getFishingLuckBonus(pUser.getUseItem());
+            int k = EnchantmentHelper.getFishingSpeedBonus(pUser.getUseItem());
+            level.addFreshEntity(new FishingHook(player, level, calculateBonus(j, player), calculateBonus(k, player)));
+        }
+        if (level.isClientSide) {
             RodCastOverlay.hideOverlay();
         }
         pUser.swing(pUser.getUsedItemHand());
-        ((Player) pUser).getCooldowns().addCooldown(this, 100);
+        player.gameEvent(GameEvent.ITEM_INTERACT_FINISH);
     }
 
     @Override
     public void onUsingTick(ItemStack stack, LivingEntity player, int count) {
-        if (count%4==0) {
-            player.playSound(SoundEvents.SPYGLASS_USE, 1.0F, (float) (Math.random()*0.25+0.75));
+        if (count % 4 == 0) {
+            double k = getFishingCastStrength((Player) player) * 0.5 + 0.5;
+            player.playSound(SoundEvents.SPYGLASS_USE, 1.0F, (float) k);
         }
         super.onUsingTick(stack, player, count);
     }
