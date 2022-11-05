@@ -3,15 +3,15 @@ package net.Pandarix.stardewfishing.client;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.Pandarix.stardewfishing.StardewFishing;
 import net.Pandarix.stardewfishing.common.item.StardewFishingRodItem;
-import net.Pandarix.stardewfishing.item.init.VanillaItemInit;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Items;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
+
+import java.util.Objects;
 
 @OnlyIn(Dist.CLIENT)
 public class RodCastOverlay {
@@ -26,7 +26,7 @@ public class RodCastOverlay {
     private static final int MAX_WIDTH = 182;
 
     public static final IGuiOverlay HUD_ROD_CAST = ((gui, poseStack, partialTick, width, height) -> {
-        if (showOverlay && gui.getMinecraft().player.isHolding(VanillaItemInit.FISHING_ROD.get())) {
+        if (showOverlay && Objects.requireNonNull(gui.getMinecraft().player).fishing != null) {
             Minecraft minecraft = gui.getMinecraft(); //Minecraft Client instance
 
             minecraft.getProfiler().push("castBar"); //divider name
