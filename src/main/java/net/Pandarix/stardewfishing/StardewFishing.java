@@ -1,6 +1,7 @@
 package net.Pandarix.stardewfishing;
 
 import com.mojang.logging.LogUtils;
+import net.Pandarix.stardewfishing.item.init.VanillaItemInit;
 import net.Pandarix.stardewfishing.util.Config;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
@@ -26,6 +27,8 @@ public class StardewFishing
     public StardewFishing()
     {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+
+        VanillaItemInit.register(modEventBus);
 
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
