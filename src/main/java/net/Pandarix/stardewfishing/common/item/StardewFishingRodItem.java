@@ -20,7 +20,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
 
 public class StardewFishingRodItem extends FishingRodItem {
-    public static final int USE_DURATION = 120;
+    private static final int USE_DURATION = 120;
 
     public StardewFishingRodItem(Properties pProperties) {
         super(pProperties);
@@ -41,6 +41,12 @@ public class StardewFishingRodItem extends FishingRodItem {
                     p_41288_.broadcastBreakEvent(pHand);
                 });
 
+                if (pLevel.isClientSide) {
+                    RodCastOverlay.hideOverlay();
+                    RodCastOverlay.resetCastShade();
+                    RodCastOverlay.resetCastValue();
+                }
+
                 pLevel.playSound((Player) null, pPlayer.getX(), pPlayer.getY(), pPlayer.getZ(), SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.NEUTRAL, 1.0F, 0.4F / (pLevel.getRandom().nextFloat() * 0.4F + 0.8F));
                 pPlayer.gameEvent(GameEvent.ITEM_INTERACT_FINISH);
                 return InteractionResultHolder.sidedSuccess(itemstack, pLevel.isClientSide());
@@ -49,6 +55,7 @@ public class StardewFishingRodItem extends FishingRodItem {
             //cast-----------------------------------------------------------------------------------------------------------------------------------
             if (pLevel.isClientSide) {
                 RodCastOverlay.enableOverlay();
+                RodCastOverlay.resetCastShade();
             }
             pPlayer.gameEvent(GameEvent.ITEM_INTERACT_START);
             pPlayer.awardStat(Stats.ITEM_USED.get(this));
@@ -105,7 +112,7 @@ public class StardewFishingRodItem extends FishingRodItem {
      * @return int - rounded value
      */
     private int stingyRound(double d){
-        return d % 1 > 0.85 ? Math.round((float) d) : (int) d;
+        return d % 1 > 0.8 ? Math.round((float) d) : (int) d;
     }
 
     /**
@@ -115,7 +122,7 @@ public class StardewFishingRodItem extends FishingRodItem {
      * @return double - value between 0 and 1
      */
     public static double getFishingCastStrength(Player player){
-        return (Math.abs(Math.sin((player.getUseItemRemainingTicks() / (float) (StardewFishingRodItem.USE_DURATION / 2)) * Math.PI + (Math.PI / 2))) * (-1) + 1);
+        return (Math.abs(Math.sin((player.getUseItemRemainingTicks() / (float) (StardewFishingRodItem.USE_DURATION / Config.SPEED_MULTIPLIER.get())) * Math.PI + (Math.PI / 2))) * (-1) + 1);
     }
 
     /**
@@ -140,14 +147,22 @@ public class StardewFishingRodItem extends FishingRodItem {
         Player player = (Player) pUser;
         Level level = pUser.level;
 
+        if(player.level.isClientSide){
+            if(stingyRound(getFishingCastStrength(player)*2) == 2){
+                player.playSound(SoundEvents.AMETHYST_BLOCK_CHIME, 1.5F, (float) Math.random()+0.5F);
+                RodCastOverlay.goodCastShade();
+            } else if (getFishingCastStrength(player)*2 < 1) {
+                player.playSound(SoundEvents.MANGROVE_ROOTS_PLACE, 0.75F, (float) Math.random()*0.5F);
+                RodCastOverlay.badCastShade();
+            }
+            RodCastOverlay.storeLastCastValue(player);
+        }
+
         pUser.playSound(SoundEvents.FISHING_BOBBER_THROW, 1.0F, 1.0F);
         if (!level.isClientSide) {
             int j = EnchantmentHelper.getFishingLuckBonus(pUser.getUseItem());
             int k = EnchantmentHelper.getFishingSpeedBonus(pUser.getUseItem());
             level.addFreshEntity(new FishingHook(player, level, calculateBonus(j, player), calculateBonus(k, player)));
-        }
-        if (level.isClientSide) {
-            RodCastOverlay.hideOverlay();
         }
         pUser.swing(pUser.getUsedItemHand());
         player.gameEvent(GameEvent.ITEM_INTERACT_FINISH);
