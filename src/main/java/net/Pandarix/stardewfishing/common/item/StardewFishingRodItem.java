@@ -57,6 +57,7 @@ public class StardewFishingRodItem extends FishingRodItem {
                 RodCastOverlay.enableOverlay();
                 RodCastOverlay.resetCastShade();
             }
+
             pPlayer.gameEvent(GameEvent.ITEM_INTERACT_START);
             pPlayer.awardStat(Stats.ITEM_USED.get(this));
             ItemUtils.startUsingInstantly(pLevel, pPlayer, pHand);

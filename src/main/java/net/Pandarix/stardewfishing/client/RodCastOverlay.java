@@ -3,12 +3,14 @@ package net.Pandarix.stardewfishing.client;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.Pandarix.stardewfishing.StardewFishing;
 import net.Pandarix.stardewfishing.common.item.StardewFishingRodItem;
+import net.Pandarix.stardewfishing.item.init.VanillaItemInit;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 
 import java.util.Objects;
@@ -26,7 +28,7 @@ public class RodCastOverlay {
     private static final int MAX_WIDTH = 182;
 
     public static final IGuiOverlay HUD_ROD_CAST = ((gui, poseStack, partialTick, width, height) -> {
-        if (showOverlay && Objects.requireNonNull(gui.getMinecraft().player).fishing != null) {
+        if (showOverlay && Objects.requireNonNull(gui.getMinecraft().player).getItemInHand(gui.getMinecraft().player.getUsedItemHand()).is(VanillaItemInit.FISHING_ROD.get())) {
             Minecraft minecraft = gui.getMinecraft(); //Minecraft Client instance
 
             minecraft.getProfiler().push("castBar"); //divider name
@@ -67,30 +69,30 @@ public class RodCastOverlay {
         }
     });
 
-    public static final void enableOverlay() {
+    public static void enableOverlay() {
         showOverlay = true;
     }
 
-    public static final void hideOverlay() {
+    public static void hideOverlay() {
         showOverlay = false;
     }
 
-    public static final void badCastShade() {
+    public static void badCastShade() {
         overlayShade = -1;
     }
 
-    public static final void goodCastShade() {
+    public static void goodCastShade() {
         overlayShade = 1;
     }
 
-    public static final void resetCastShade() {
+    public static void resetCastShade() {
         overlayShade = 0;
     }
 
-    public static final void resetCastValue() {
+    public static void resetCastValue() {
         lastCastValue = 0;
     }
-    public static final void storeLastCastValue(Player player) {
+    public static void storeLastCastValue(Player player) {
         lastCastValue = (StardewFishingRodItem.getFishingCastStrength(player)) * MAX_WIDTH;
     }
 
